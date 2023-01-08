@@ -10,7 +10,7 @@ import (
 
 	"strings"
 
-	secretmanager "cloud.google.com/go/secretmanager/apiv1beta1"
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"github.com/Azure/azure-sdk-for-go/profiles/latest/keyvault/keyvault"
 	azauth "github.com/Azure/azure-sdk-for-go/services/keyvault/auth"
 	"github.com/Azure/go-autorest/autorest"
@@ -25,7 +25,7 @@ import (
 
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
-	secretspb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1beta1"
+	secretspb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
@@ -110,8 +110,12 @@ func NewSecretManager(ctx context.Context, instance *v1alpha1.SecretAgentConfigu
 		sm, err = newAWS(ctx, config, rClient, cloudCredNS)
 	case v1alpha1.SecretsManagerAzure:
 		sm, err = newAzure(config, rClient, cloudCredNS)
+	case v1alpha1.SecretsManagerVault:
+		sm, err = newVault(ctx, config, rClient, cloudCredNS)
 	case v1alpha1.SecretsManagerNone:
 		sm = newNone() // if secretmanager in the config is "none" then return this
+	default:
+		return nil, errors.New("invalid secretsManager type")
 	}
 
 	return sm, err

@@ -106,7 +106,7 @@ const (
 )
 
 // SecretsManager Specifies which cloud secret manager will be used
-// +kubebuilder:validation:Enum=none;GCP;AWS;Azure
+// +kubebuilder:validation:Enum=none;GCP;AWS;Azure;Vault
 type SecretsManager string
 
 // SecretsManager Strings
@@ -115,6 +115,7 @@ const (
 	SecretsManagerGCP   SecretsManager = "GCP"
 	SecretsManagerAWS   SecretsManager = "AWS"
 	SecretsManagerAzure SecretsManager = "Azure"
+	SecretsManagerVault SecretsManager = "Vault"
 )
 
 // AlgorithmType Specifies which keystore algorithm to use
@@ -191,6 +192,12 @@ type AppConfig struct {
 	AWSRegion             string         `json:"awsRegion,omitempty"`
 	AWSKmsKeyId           string         `json:"awsKmsKeyId,omitempty"`
 	AzureVaultName        string         `json:"azureVaultName,omitempty"`
+
+	// vault config
+	VaultAddress      string `json:"vaultAddress,omitempty"`
+	VaultKubeRole     string `json:"vaultKubeRole,omitempty"`
+	VaultKVSecretPath string `json:"vaultKVSecretPath,omitempty"`
+	VaultKVMount      string `json:"vaultKVMount,omitempty"`
 
 	// Optional timeout value to generate a individual secret. Defaults to 40
 	// +kubebuilder:default:=40
