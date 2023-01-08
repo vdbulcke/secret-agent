@@ -177,16 +177,16 @@ func (kt *KeyTool) LoadSecretFromManager(ctx context.Context, sm secretsmanager.
 	keyToolFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, kt.Name)
 	storePassFmt := fmt.Sprintf("%s_%s_storepass", secretManagerKeyNamespace, kt.Name)
 	keyPasslFmt := fmt.Sprintf("%s_%s_keypass", secretManagerKeyNamespace, kt.Name)
-	kt.storeBytes, err = sm.LoadSecret(ctx, keyToolFmt)
+	kt.storeBytes, err = sm.LoadSecret(ctx, keyToolFmt, secretsmanager.TypeKeystore)
 	if err != nil {
 		return err
 	}
-	storePassValueBytes, err := sm.LoadSecret(ctx, storePassFmt)
+	storePassValueBytes, err := sm.LoadSecret(ctx, storePassFmt, secretsmanager.TypePassword)
 	kt.storePassValue = string(storePassValueBytes)
 	if err != nil {
 		return err
 	}
-	keyPassValueBytes, err := sm.LoadSecret(ctx, keyPasslFmt)
+	keyPassValueBytes, err := sm.LoadSecret(ctx, keyPasslFmt, secretsmanager.TypePassword)
 	kt.keyPassValue = string(keyPassValueBytes)
 	if err != nil {
 		return err
@@ -202,15 +202,15 @@ func (kt *KeyTool) EnsureSecretManager(ctx context.Context, sm secretsmanager.Se
 	storePassFmt := fmt.Sprintf("%s_%s_storepass", secretManagerKeyNamespace, kt.Name)
 	keyPasslFmt := fmt.Sprintf("%s_%s_keypass", secretManagerKeyNamespace, kt.Name)
 
-	err = sm.EnsureSecret(ctx, keyToolFmt, kt.storeBytes)
+	err = sm.EnsureSecret(ctx, keyToolFmt, kt.storeBytes, secretsmanager.TypeKeystore)
 	if err != nil {
 		return err
 	}
-	err = sm.EnsureSecret(ctx, storePassFmt, []byte(kt.storePassValue))
+	err = sm.EnsureSecret(ctx, storePassFmt, []byte(kt.storePassValue), secretsmanager.TypePassword)
 	if err != nil {
 		return err
 	}
-	err = sm.EnsureSecret(ctx, keyPasslFmt, []byte(kt.keyPassValue))
+	err = sm.EnsureSecret(ctx, keyPasslFmt, []byte(kt.keyPassValue), secretsmanager.TypePassword)
 	if err != nil {
 		return err
 	}

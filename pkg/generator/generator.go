@@ -302,7 +302,7 @@ func (k *keyGenConfig) loadRefFromManager(ctx context.Context, refName, refKey s
 	} else {
 		nameFmt = fmt.Sprintf("%s_%s_%s", k.Namespace, refName, refKey)
 	}
-	value, err := k.SecretManager.LoadSecret(ctx, nameFmt)
+	value, err := k.SecretManager.LoadSecret(ctx, nameFmt, secretsmanager.TypeDefault)
 	if err != nil {
 		return []byte{}, err
 	}

@@ -90,13 +90,13 @@ func newVault(ctx context.Context, cfg *v1alpha1.AppConfig, rClient client.Clien
 }
 
 // EnsureSecret ensures a single secret is stored in HC Vault
-func (vm *secretManagerVault) EnsureSecret(ctx context.Context, secretName string, value []byte) error {
+func (vm *secretManagerVault) EnsureSecret(ctx context.Context, secretName string, value []byte, secretType string) error {
 
-	// make sure it is in string format by b64 encoding
-	b64Value := base64.StdEncoding.EncodeToString(value)
+	secretValue := vm.getSecretStrValue(value, secretType)
 
 	payload := map[string]interface{}{
-		DefaultSecretKey: b64Value,
+		DefaultSecretKey: secretValue,
+		"secret_type":    secretType,
 	}
 
 	path := vm.getSecretPath(secretName)
@@ -111,7 +111,7 @@ func (vm *secretManagerVault) EnsureSecret(ctx context.Context, secretName strin
 }
 
 // LoadSecret read secret from HC vault
-func (vm *secretManagerVault) LoadSecret(ctx context.Context, secretName string) ([]byte, error) {
+func (vm *secretManagerVault) LoadSecret(ctx context.Context, secretName string, secretType string) ([]byte, error) {
 	// get secret path
 	path := vm.getSecretPath(secretName)
 
@@ -131,8 +131,8 @@ func (vm *secretManagerVault) LoadSecret(ctx context.Context, secretName string)
 		return []byte{}, nil
 	}
 
-	// decode b64 as bytes
-	return base64.StdEncoding.DecodeString(value)
+	// decode secret string according to type
+	return vm.getSecretByteValue(value, secretType)
 
 }
 
@@ -142,4 +142,39 @@ func (vm *secretManagerVault) CloseClient() {}
 // getSecretPath return full secret path
 func (vm *secretManagerVault) getSecretPath(secretName string) string {
 	return fmt.Sprintf("%s/%s", vm.secretPath, secretName)
+}
+
+// getSecretStrValue format bytes as string according to secret type
+func (vm *secretManagerVault) getSecretStrValue(data []byte, secretType string) string {
+
+	var value string
+
+	switch secretType {
+	case TypeKeystore:
+		value = base64.StdEncoding.EncodeToString(data)
+	case TypePEM:
+		value = string(data)
+	case TypePassword:
+		value = string(data)
+	default:
+		value = base64.StdEncoding.EncodeToString(data)
+	}
+
+	return value
+}
+
+// getSecretByteValue format string as bytes  according to secret type
+func (vm *secretManagerVault) getSecretByteValue(data, secretType string) ([]byte, error) {
+
+	switch secretType {
+	case TypeKeystore:
+		return base64.StdEncoding.DecodeString(data)
+	case TypePEM:
+		return []byte(data), nil
+	case TypePassword:
+		return []byte(data), nil
+	default:
+		return base64.StdEncoding.DecodeString(data)
+	}
+
 }

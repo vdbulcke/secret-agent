@@ -47,8 +47,8 @@ func idSafe(value string) string {
 
 // SecretManager interface for adding or loading secret manager secrets
 type SecretManager interface {
-	EnsureSecret(ctx context.Context, secretName string, value []byte) error
-	LoadSecret(ctx context.Context, secretName string) ([]byte, error)
+	EnsureSecret(ctx context.Context, secretName string, value []byte, secretType string) error
+	LoadSecret(ctx context.Context, secretName string, secretType string) ([]byte, error)
 	CloseClient()
 }
 
@@ -342,7 +342,7 @@ func (sm *secretManagerGCP) CloseClient() {
 }
 
 // EnsureSecret ensures a single secret is stored in Google Secret Manager
-func (sm *secretManagerGCP) EnsureSecret(ctx context.Context, secretName string, value []byte) error {
+func (sm *secretManagerGCP) EnsureSecret(ctx context.Context, secretName string, value []byte, secretType string) error {
 	// get secret ID
 	secretID := getSecretID(sm.secretsManagerPrefix, secretName)
 
@@ -398,7 +398,7 @@ func (sm *secretManagerGCP) EnsureSecret(ctx context.Context, secretName string,
 }
 
 // LoadSecret loads a single secret out of Google SecretManager, if it exists
-func (sm *secretManagerGCP) LoadSecret(ctx context.Context, secretName string) ([]byte, error) {
+func (sm *secretManagerGCP) LoadSecret(ctx context.Context, secretName string, secretType string) ([]byte, error) {
 	// get secret ID
 	secretID := getSecretID(sm.secretsManagerPrefix, secretName)
 
@@ -423,7 +423,7 @@ func (sm *secretManagerGCP) LoadSecret(ctx context.Context, secretName string) (
 func (sm *secretManagerAWS) CloseClient() {}
 
 // EnsureSecret saves secret to AWS secret manager
-func (sm *secretManagerAWS) EnsureSecret(ctx context.Context, secretName string, value []byte) error {
+func (sm *secretManagerAWS) EnsureSecret(ctx context.Context, secretName string, value []byte, secretType string) error {
 	// get secret ID
 	if binary.Size(value) > awssecretsManagerMaxBytes {
 		return errors.WithStack(fmt.Errorf("unable to write %s to AWS secret manager size exceeds 65kb", secretName))
@@ -471,7 +471,7 @@ func (sm *secretManagerAWS) EnsureSecret(ctx context.Context, secretName string,
 }
 
 // LoadSecret loads a single secret out of AWS SecretsManager, if it exists
-func (sm *secretManagerAWS) LoadSecret(ctx context.Context, secretName string) ([]byte, error) {
+func (sm *secretManagerAWS) LoadSecret(ctx context.Context, secretName string, secretType string) ([]byte, error) {
 	// get secret ID
 	secretID := getSecretID(sm.secretsManagerPrefix, secretName)
 
@@ -495,7 +495,7 @@ func (sm *secretManagerAzure) CloseClient() {}
 var azureVaultURLFmt string = "https://%s.vault.azure.net/"
 
 // EnsureSecret ensures a single secret is stored in AWS Secret Manager
-func (sm *secretManagerAzure) EnsureSecret(ctx context.Context, secretName string, value []byte) error {
+func (sm *secretManagerAzure) EnsureSecret(ctx context.Context, secretName string, value []byte, secretType string) error {
 	// get secret ID
 	secretID := getSecretID(sm.secretsManagerPrefix, secretName)
 
@@ -513,7 +513,7 @@ func (sm *secretManagerAzure) EnsureSecret(ctx context.Context, secretName strin
 }
 
 // LoadSecret loads a secret from Azure Key Vault
-func (sm *secretManagerAzure) LoadSecret(ctx context.Context, secretName string) ([]byte, error) {
+func (sm *secretManagerAzure) LoadSecret(ctx context.Context, secretName string, secretType string) ([]byte, error) {
 	// get secret ID
 	secretID := getSecretID(sm.secretsManagerPrefix, secretName)
 
@@ -545,12 +545,12 @@ func (sm *secretManagerAzure) LoadSecret(ctx context.Context, secretName string)
 func (sm *secretManagerNone) CloseClient() {}
 
 // EnsureSecret returns nil if SecretsManagerNone is true
-func (sm *secretManagerNone) EnsureSecret(ctx context.Context, secretName string, value []byte) error {
+func (sm *secretManagerNone) EnsureSecret(ctx context.Context, secretName string, value []byte, secretType string) error {
 	return nil
 }
 
 // LoadSecret returns nil if SecretsManagerNone is true
-func (sm *secretManagerNone) LoadSecret(ctx context.Context, secretName string) ([]byte, error) {
+func (sm *secretManagerNone) LoadSecret(ctx context.Context, secretName string, secretType string) ([]byte, error) {
 	return nil, nil
 }
 

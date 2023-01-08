@@ -35,7 +35,12 @@ func (literal *Literal) LoadReferenceData(data map[string][]byte) error {
 func (literal *Literal) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
 	var err error
 	literalFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, literal.Name)
-	literal.Value, err = sm.LoadSecret(context, literalFmt)
+	secretType := secretsmanager.TypeDefault
+	if !literal.IsBase64 {
+		secretType = secretsmanager.TypePassword
+	}
+
+	literal.Value, err = sm.LoadSecret(context, literalFmt, secretType)
 	if err != nil {
 		return err
 	}
@@ -46,7 +51,11 @@ func (literal *Literal) LoadSecretFromManager(context context.Context, sm secret
 func (literal *Literal) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
 	var err error
 	literalFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, literal.Name)
-	err = sm.EnsureSecret(context, literalFmt, literal.Value)
+	secretType := secretsmanager.TypeDefault
+	if !literal.IsBase64 {
+		secretType = secretsmanager.TypePassword
+	}
+	err = sm.EnsureSecret(context, literalFmt, literal.Value, secretType)
 	if err != nil {
 		return err
 	}

@@ -40,11 +40,11 @@ func (ssh *SSH) LoadSecretFromManager(context context.Context, sm secretsmanager
 	sshPrivateFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, ssh.Name)
 	sshPublicFmt := fmt.Sprintf("%s_%s.pub", secretManagerKeyNamespace, ssh.Name)
 
-	ssh.PrivateKeyPEM, err = sm.LoadSecret(context, sshPrivateFmt)
+	ssh.PrivateKeyPEM, err = sm.LoadSecret(context, sshPrivateFmt, secretsmanager.TypePEM)
 	if err != nil {
 		return err
 	}
-	ssh.PublicKeyPEM, err = sm.LoadSecret(context, sshPublicFmt)
+	ssh.PublicKeyPEM, err = sm.LoadSecret(context, sshPublicFmt, secretsmanager.TypePEM)
 	if err != nil {
 		return err
 	}
@@ -56,11 +56,11 @@ func (ssh *SSH) EnsureSecretManager(context context.Context, sm secretsmanager.S
 	sshPrivateFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, ssh.Name)
 	sshPublicFmt := fmt.Sprintf("%s_%s.pub", secretManagerKeyNamespace, ssh.Name)
 
-	if err := sm.EnsureSecret(context, sshPrivateFmt, ssh.PrivateKeyPEM); err != nil {
+	if err := sm.EnsureSecret(context, sshPrivateFmt, ssh.PrivateKeyPEM, secretsmanager.TypePEM); err != nil {
 		return err
 	}
 
-	if err := sm.EnsureSecret(context, sshPublicFmt, ssh.PublicKeyPEM); err != nil {
+	if err := sm.EnsureSecret(context, sshPublicFmt, ssh.PublicKeyPEM, secretsmanager.TypePEM); err != nil {
 		return err
 	}
 	return nil

@@ -38,7 +38,7 @@ func (pwd *Password) LoadReferenceData(data map[string][]byte) error {
 func (pwd *Password) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
 	var err error
 	pwdFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, pwd.Name)
-	pwd.Value, err = sm.LoadSecret(context, pwdFmt)
+	pwd.Value, err = sm.LoadSecret(context, pwdFmt, secretsmanager.TypePassword)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (pwd *Password) LoadSecretFromManager(context context.Context, sm secretsma
 func (pwd *Password) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
 	var err error
 	pwdFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, pwd.Name)
-	err = sm.EnsureSecret(context, pwdFmt, pwd.Value)
+	err = sm.EnsureSecret(context, pwdFmt, pwd.Value, secretsmanager.TypePassword)
 	if err != nil {
 		return err
 	}

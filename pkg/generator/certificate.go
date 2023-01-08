@@ -158,11 +158,11 @@ func (kp *CertKeyPair) LoadSecretFromManager(ctx context.Context, sm secretsmana
 	publicPemKeyFmt := fmt.Sprintf("%s_%s.pem", secretManagerKeyNamespace, kp.Name)
 	privatePemKeyFmt := fmt.Sprintf("%s_%s-private.pem", secretManagerKeyNamespace, kp.Name)
 
-	kp.Cert.CertPEM, err = sm.LoadSecret(ctx, publicPemKeyFmt)
+	kp.Cert.CertPEM, err = sm.LoadSecret(ctx, publicPemKeyFmt, secretsmanager.TypePEM)
 	if err != nil {
 		return err
 	}
-	kp.Cert.PrivateKeyPEM, err = sm.LoadSecret(ctx, privatePemKeyFmt)
+	kp.Cert.PrivateKeyPEM, err = sm.LoadSecret(ctx, privatePemKeyFmt, secretsmanager.TypePEM)
 	if err != nil {
 		return err
 	}
@@ -174,11 +174,11 @@ func (kp *CertKeyPair) EnsureSecretManager(ctx context.Context, sm secretsmanage
 	var err error
 	publicPemKeyFmt := fmt.Sprintf("%s_%s.pem", secretManagerKeyNamespace, kp.Name)
 	privatePemKeyFmt := fmt.Sprintf("%s_%s-private.pem", secretManagerKeyNamespace, kp.Name)
-	err = sm.EnsureSecret(ctx, publicPemKeyFmt, kp.Cert.CertPEM)
+	err = sm.EnsureSecret(ctx, publicPemKeyFmt, kp.Cert.CertPEM, secretsmanager.TypePEM)
 	if err != nil {
 		return err
 	}
-	err = sm.EnsureSecret(ctx, privatePemKeyFmt, kp.Cert.PrivateKeyPEM)
+	err = sm.EnsureSecret(ctx, privatePemKeyFmt, kp.Cert.PrivateKeyPEM, secretsmanager.TypePEM)
 	if err != nil {
 		return err
 	}
