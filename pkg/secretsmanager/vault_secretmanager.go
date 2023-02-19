@@ -14,11 +14,12 @@ import (
 )
 
 var (
-	DefaultVaultKVSecretPath = "kube/fr/secret"
-	DefaultVaultAddress      = "http://vault-active.vault.svc.cluster.local:8200"
-	DefaultVaultKubeRoleName = "fr-secret-agent"
-	DefaultSecretKey         = "value"
-	DefaultKVMount           = "secret"
+	DefaultVaultKVSecretPath   = "kube/fr/secret"
+	DefaultVaultAddress        = "http://vault-active.vault.svc.cluster.local:8200"
+	DefaultVaultKubeRoleName   = "fr-secret-agent"
+	DefaultSecretKey           = "value"
+	DefaultKVMount             = "secret"
+	DefaultVaultSecretTokenKey = "VAULT_TOKEN"
 )
 
 // secretManagerVault container for GCP secret manager properties
@@ -63,23 +64,47 @@ func newVault(ctx context.Context, cfg *v1alpha1.AppConfig, rClient client.Clien
 		return nil, fmt.Errorf("Vault: unable to initialize Vault client: %w", err)
 	}
 
-	// The service-account token will be read from the path where the token's
-	// Kubernetes Secret is mounted. By default, Kubernetes will mount it to
-	// /var/run/secrets/kubernetes.io/serviceaccount/token, but an administrator
-	// may have configured it to be mounted elsewhere.
-	// In that case, we'll use the option WithServiceAccountTokenPath to look
-	// for the token there.
-	k8sAuth, err := auth.NewKubernetesAuth(vaultRole)
-	if err != nil {
-		return nil, fmt.Errorf("Vault: unable to initialize Kubernetes auth method: %w", err)
-	}
+	// if credentials secret is provided
+	// use VAULT_TOKEN secret instead of Kubernetes App Role
+	// auth method in vault
+	if cfg.CredentialsSecretName != "" {
+		var vaultToken string
 
-	authInfo, err := client.Auth().Login(ctx, k8sAuth)
-	if err != nil {
-		return nil, fmt.Errorf("Vault: unable to log in with Kubernetes auth: %w", err)
-	}
-	if authInfo == nil {
-		return nil, fmt.Errorf("Vault: no auth info was returned after login")
+		// load credentials secret from Kubernetes secret
+		secObject, err := LoadCredentialsSecret(rClient, cfg, cloudCredNS)
+		if err != nil {
+			return nil, err
+		}
+
+		// extract VAULT_TOKEN from Kubernetes secret
+		if keyValue, ok := secObject.Data[DefaultVaultSecretTokenKey]; ok {
+			vaultToken = string(keyValue)
+		} else {
+			return nil, fmt.Errorf(fmt.Sprintf("Can't read %s. Cloud credentials secret must contain a valid Vault Token", DefaultVaultSecretTokenKey))
+		}
+
+		// Authenticate with Tpken
+		client.SetToken(vaultToken)
+
+	} else {
+		// The service-account token will be read from the path where the token's
+		// Kubernetes Secret is mounted. By default, Kubernetes will mount it to
+		// /var/run/secrets/kubernetes.io/serviceaccount/token, but an administrator
+		// may have configured it to be mounted elsewhere.
+		// In that case, we'll use the option WithServiceAccountTokenPath to look
+		// for the token there.
+		k8sAuth, err := auth.NewKubernetesAuth(vaultRole)
+		if err != nil {
+			return nil, fmt.Errorf("Vault: unable to initialize Kubernetes auth method: %w", err)
+		}
+
+		authInfo, err := client.Auth().Login(ctx, k8sAuth)
+		if err != nil {
+			return nil, fmt.Errorf("Vault: unable to log in with Kubernetes auth: %w", err)
+		}
+		if authInfo == nil {
+			return nil, fmt.Errorf("Vault: no auth info was returned after login")
+		}
 	}
 
 	return &secretManagerVault{
