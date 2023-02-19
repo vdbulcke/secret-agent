@@ -172,11 +172,17 @@ func (kt *KeyTool) LoadReferenceData(data map[string][]byte) error {
 }
 
 // LoadSecretFromManager  populates keytool data from secret manager
-func (kt *KeyTool) LoadSecretFromManager(ctx context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (kt *KeyTool) LoadSecretFromManager(ctx context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	var err error
 	keyToolFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, kt.Name)
 	storePassFmt := fmt.Sprintf("%s_%s_storepass", secretManagerKeyNamespace, kt.Name)
 	keyPasslFmt := fmt.Sprintf("%s_%s_keypass", secretManagerKeyNamespace, kt.Name)
+	if useSlashSep {
+		keyToolFmt = fmt.Sprintf("%s/%s", secretManagerKeyNamespace, kt.Name)
+		storePassFmt = fmt.Sprintf("%s/%s_storepass", secretManagerKeyNamespace, kt.Name)
+		keyPasslFmt = fmt.Sprintf("%s/%s_keypass", secretManagerKeyNamespace, kt.Name)
+	}
+
 	kt.storeBytes, err = sm.LoadSecret(ctx, keyToolFmt, secretsmanager.TypeKeystore)
 	if err != nil {
 		return err
@@ -195,12 +201,18 @@ func (kt *KeyTool) LoadSecretFromManager(ctx context.Context, sm secretsmanager.
 }
 
 // EnsureSecretManager adds keytool to secret manager
-func (kt *KeyTool) EnsureSecretManager(ctx context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (kt *KeyTool) EnsureSecretManager(ctx context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 
 	var err error
 	keyToolFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, kt.Name)
 	storePassFmt := fmt.Sprintf("%s_%s_storepass", secretManagerKeyNamespace, kt.Name)
 	keyPasslFmt := fmt.Sprintf("%s_%s_keypass", secretManagerKeyNamespace, kt.Name)
+
+	if useSlashSep {
+		keyToolFmt = fmt.Sprintf("%s/%s", secretManagerKeyNamespace, kt.Name)
+		storePassFmt = fmt.Sprintf("%s/%s_storepass", secretManagerKeyNamespace, kt.Name)
+		keyPasslFmt = fmt.Sprintf("%s/%s_keypass", secretManagerKeyNamespace, kt.Name)
+	}
 
 	err = sm.EnsureSecret(ctx, keyToolFmt, kt.storeBytes, secretsmanager.TypeKeystore)
 	if err != nil {

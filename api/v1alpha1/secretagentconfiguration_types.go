@@ -192,6 +192,8 @@ type AppConfig struct {
 	AWSRegion             string         `json:"awsRegion,omitempty"`
 	AWSKmsKeyId           string         `json:"awsKmsKeyId,omitempty"`
 	AzureVaultName        string         `json:"azureVaultName,omitempty"`
+	// Use '/' as secret name separator when constructing secret path. Default: "-"
+	SecretsManagerUseSlashSeparator bool `json:"secretsManagerUseSlashSeparator,omitempty"`
 
 	// vault config
 	VaultAddress      string `json:"vaultAddress,omitempty"`

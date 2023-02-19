@@ -35,10 +35,14 @@ func (ssh *SSH) LoadReferenceData(data map[string][]byte) error {
 }
 
 // LoadSecretFromManager populates SSH data from secret manager
-func (ssh *SSH) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (ssh *SSH) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	var err error
 	sshPrivateFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, ssh.Name)
 	sshPublicFmt := fmt.Sprintf("%s_%s.pub", secretManagerKeyNamespace, ssh.Name)
+	if useSlashSep {
+		sshPrivateFmt = fmt.Sprintf("%s/%s", secretManagerKeyNamespace, ssh.Name)
+		sshPublicFmt = fmt.Sprintf("%s/%s.pub", secretManagerKeyNamespace, ssh.Name)
+	}
 
 	ssh.PrivateKeyPEM, err = sm.LoadSecret(context, sshPrivateFmt, secretsmanager.TypePEM)
 	if err != nil {
@@ -52,9 +56,13 @@ func (ssh *SSH) LoadSecretFromManager(context context.Context, sm secretsmanager
 }
 
 // EnsureSecretManager populates secrets manager from SSH data
-func (ssh *SSH) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (ssh *SSH) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	sshPrivateFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, ssh.Name)
 	sshPublicFmt := fmt.Sprintf("%s_%s.pub", secretManagerKeyNamespace, ssh.Name)
+	if useSlashSep {
+		sshPrivateFmt = fmt.Sprintf("%s/%s", secretManagerKeyNamespace, ssh.Name)
+		sshPublicFmt = fmt.Sprintf("%s/%s.pub", secretManagerKeyNamespace, ssh.Name)
+	}
 
 	if err := sm.EnsureSecret(context, sshPrivateFmt, ssh.PrivateKeyPEM, secretsmanager.TypePEM); err != nil {
 		return err

@@ -32,9 +32,13 @@ func (literal *Literal) LoadReferenceData(data map[string][]byte) error {
 }
 
 // LoadSecretFromManager populates Literal data from secret manager
-func (literal *Literal) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (literal *Literal) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	var err error
 	literalFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, literal.Name)
+	if useSlashSep {
+		literalFmt = fmt.Sprintf("%s/%s", secretManagerKeyNamespace, literal.Name)
+	}
+
 	secretType := secretsmanager.TypeDefault
 	if !literal.IsBase64 {
 		secretType = secretsmanager.TypePassword
@@ -48,9 +52,12 @@ func (literal *Literal) LoadSecretFromManager(context context.Context, sm secret
 }
 
 // EnsureSecretManager populates secrets manager from Literal data
-func (literal *Literal) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (literal *Literal) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	var err error
 	literalFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, literal.Name)
+	if useSlashSep {
+		literalFmt = fmt.Sprintf("%s/%s", secretManagerKeyNamespace, literal.Name)
+	}
 	secretType := secretsmanager.TypeDefault
 	if !literal.IsBase64 {
 		secretType = secretsmanager.TypePassword

@@ -153,10 +153,14 @@ func (kp *CertKeyPair) References() ([]string, []string) {
 }
 
 // LoadSecretFromManager populates RootCA data from secret manager
-func (kp *CertKeyPair) LoadSecretFromManager(ctx context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (kp *CertKeyPair) LoadSecretFromManager(ctx context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	var err error
 	publicPemKeyFmt := fmt.Sprintf("%s_%s.pem", secretManagerKeyNamespace, kp.Name)
 	privatePemKeyFmt := fmt.Sprintf("%s_%s-private.pem", secretManagerKeyNamespace, kp.Name)
+	if useSlashSep {
+		publicPemKeyFmt = fmt.Sprintf("%s/%s.pem", secretManagerKeyNamespace, kp.Name)
+		privatePemKeyFmt = fmt.Sprintf("%s/%s-private.pem", secretManagerKeyNamespace, kp.Name)
+	}
 
 	kp.Cert.CertPEM, err = sm.LoadSecret(ctx, publicPemKeyFmt, secretsmanager.TypePEM)
 	if err != nil {
@@ -170,10 +174,14 @@ func (kp *CertKeyPair) LoadSecretFromManager(ctx context.Context, sm secretsmana
 }
 
 // EnsureSecretManager populates secrete manager from RootCA data
-func (kp *CertKeyPair) EnsureSecretManager(ctx context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (kp *CertKeyPair) EnsureSecretManager(ctx context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string,  useSlashSep bool) error {
 	var err error
 	publicPemKeyFmt := fmt.Sprintf("%s_%s.pem", secretManagerKeyNamespace, kp.Name)
 	privatePemKeyFmt := fmt.Sprintf("%s_%s-private.pem", secretManagerKeyNamespace, kp.Name)
+	if useSlashSep {
+		publicPemKeyFmt = fmt.Sprintf("%s/%s.pem", secretManagerKeyNamespace, kp.Name)
+		privatePemKeyFmt = fmt.Sprintf("%s/%s-private.pem", secretManagerKeyNamespace, kp.Name)
+	}
 	err = sm.EnsureSecret(ctx, publicPemKeyFmt, kp.Cert.CertPEM, secretsmanager.TypePEM)
 	if err != nil {
 		return err

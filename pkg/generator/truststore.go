@@ -79,12 +79,12 @@ func (ts *TrustStore) LoadReferenceData(data map[string][]byte) error {
 }
 
 // LoadSecretFromManager load from secret manager
-func (ts *TrustStore) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (ts *TrustStore) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	return nil
 }
 
 // EnsureSecretManager adds  to secret manager
-func (ts *TrustStore) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (ts *TrustStore) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	return nil
 }
 

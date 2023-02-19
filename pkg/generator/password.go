@@ -35,9 +35,13 @@ func (pwd *Password) LoadReferenceData(data map[string][]byte) error {
 }
 
 // LoadSecretFromManager populates Password data from secret manager
-func (pwd *Password) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (pwd *Password) LoadSecretFromManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	var err error
 	pwdFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, pwd.Name)
+	if useSlashSep {
+		pwdFmt = fmt.Sprintf("%s/%s", secretManagerKeyNamespace, pwd.Name)
+	}
+
 	pwd.Value, err = sm.LoadSecret(context, pwdFmt, secretsmanager.TypePassword)
 	if err != nil {
 		return err
@@ -46,9 +50,12 @@ func (pwd *Password) LoadSecretFromManager(context context.Context, sm secretsma
 }
 
 // EnsureSecretManager populates secrets manager from Password data
-func (pwd *Password) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string) error {
+func (pwd *Password) EnsureSecretManager(context context.Context, sm secretsmanager.SecretManager, secretManagerKeyNamespace string, useSlashSep bool) error {
 	var err error
 	pwdFmt := fmt.Sprintf("%s_%s", secretManagerKeyNamespace, pwd.Name)
+	if useSlashSep {
+		pwdFmt = fmt.Sprintf("%s/%s", secretManagerKeyNamespace, pwd.Name)
+	}
 	err = sm.EnsureSecret(context, pwdFmt, pwd.Value, secretsmanager.TypePassword)
 	if err != nil {
 		return err
